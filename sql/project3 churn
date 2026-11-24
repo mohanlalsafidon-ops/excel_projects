@@ -1,0 +1,261 @@
+create database project3;
+use project3;
+show tables;
+describe food_churn;
+select count(*) from food_churn;
+select * from food_churn limit 50;
+
+-----cheak null
+
+SELECT
+SUM(customer_id IS NULL) AS customer_id,
+SUM(age IS NULL) AS age,
+SUM(gender IS NULL) AS gender,
+SUM(city IS NULL) AS city,
+SUM(signup_date IS NULL) AS signup_date,
+SUM(tenure_months IS NULL) AS tenure_months,
+SUM(plan_type IS NULL) AS plan_type,
+SUM(preferred_device IS NULL) AS preferred_device,
+SUM(signup_channel IS NULL) AS signup_channel,
+SUM(preferred_cuisine IS NULL) AS preferred_cuisine,
+SUM(orders_last_90d IS NULL) AS orders_last_90d,
+SUM(avg_order_value_inr IS NULL) AS avg_order_value_inr,
+SUM(total_spend_90d_inr IS NULL) AS total_spend_90d_inr,
+SUM(app_opens_per_week IS NULL) AS app_opens_per_week,
+SUM(avg_session_minutes IS NULL) AS avg_session_minutes,
+SUM(days_since_last_order IS NULL) AS days_since_last_order,
+SUM(support_tickets_90d IS NULL) AS support_tickets_90d,
+SUM(avg_resolution_hours IS NULL) AS avg_resolution_hours,
+SUM(has_complaint IS NULL) AS has_complaint,
+SUM(customer_rating IS NULL) AS customer_rating,
+SUM(nps_score IS NULL) AS nps_score,
+SUM(avg_delivery_time_min IS NULL) AS avg_delivery_time_min,
+SUM(pct_orders_on_time IS NULL) AS pct_orders_on_time,
+SUM(promo_used_count IS NULL) AS promo_used_count,
+SUM(avg_discount_pct IS NULL) AS avg_discount_pct,
+SUM(payment_method IS NULL) AS payment_method,
+SUM(payment_failures_90d IS NULL) AS payment_failures_90d,
+SUM(loyalty_points IS NULL) AS loyalty_points,
+SUM(is_weekend_heavy_user IS NULL) AS is_weekend_heavy_user,
+SUM(churned IS NULL) AS churned
+FROM food_churn;
+
+-----duplicate ccustomer id see
+SELECT
+customer_id,
+COUNT(*) AS total
+FROM food_churn
+GROUP BY customer_id
+HAVING COUNT(*) > 1;
+
+SELECT gender, COUNT(*) AS total
+FROM food_churn
+GROUP BY gender;
+
+---cheak null and blank 
+SELECT COUNT(*) AS blank_city
+FROM food_churn
+WHERE city IS NULL OR TRIM(city) = '';
+
+SELECT plan_type, COUNT(*) AS total
+FROM food_churn
+GROUP BY plan_type;
+
+SELECT preferred_device, COUNT(*) AS total
+FROM food_churn
+GROUP BY preferred_device
+ORDER BY total DESC;
+
+-----aveg order value
+SELECT
+MIN(avg_order_value_inr) AS minimum_value,
+MAX(avg_order_value_inr) AS maximum_value,
+AVG(avg_order_value_inr) AS average_value
+FROM food_churn;
+
+SELECT
+MIN(total_spend_90d_inr) AS minimum_spend,
+MAX(total_spend_90d_inr) AS maximum_spend,
+AVG(total_spend_90d_inr) AS average_spend
+FROM food_churn;
+
+----blank value cheak 
+ SELECT
+COUNT(DISTINCT gender) AS total_gender,
+COUNT(DISTINCT city) AS total_city,
+COUNT(DISTINCT plan_type) AS total_plan,
+COUNT(DISTINCT preferred_device) AS total_device,
+COUNT(DISTINCT signup_channel) AS total_channel,
+COUNT(DISTINCT preferred_cuisine) AS total_cuisine,
+COUNT(DISTINCT payment_method) AS total_payment
+FROM food_churn;
+SELECT
+SUM(gender = '') AS blank_gender,
+SUM(city = '') AS blank_city,
+SUM(plan_type = '') AS blank_plan,
+SUM(preferred_device = '') AS blank_device,
+SUM(signup_channel = '') AS blank_channel,
+SUM(preferred_cuisine = '') AS blank_cuisine,
+SUM(payment_method = '') AS blank_payment
+FROM food_churn;
+
+----cheak duplicate value
+ SELECT
+customer_id,
+age,
+gender,
+city,
+signup_date,
+COUNT(*) AS duplicate_count
+
+SELECT
+customer_id,
+age,
+gender,
+city,
+signup_date,
+COUNT(*) AS duplicate_count
+FROM food_churn
+GROUP BY
+customer_id,
+age,
+gender,
+city,
+signup_date
+HAVING COUNT(*) > 1;
+
+SELECT
+MIN(signup_date) AS first_signup,
+MAX(signup_date) AS last_signup,
+COUNT(*) AS total_records
+FROM food_churn;
+
+----total spending
+SELECT
+COUNT(*) AS total_customers,
+SUM(total_spend_90d_inr) AS total_spending,
+AVG(total_spend_90d_inr) AS avg_spending
+FROM food_churn;
+
+----customer churn 
+SELECT
+COUNT(*) AS total_customers,
+SUM(churned) AS churned_customers,
+COUNT(*) - SUM(churned) AS active_customers
+FROM food_churn;
+
+---churn %%%%
+ SELECT
+ROUND(
+SUM(churned) * 100.0 / COUNT(*), 2
+) AS churn_percentage
+FROM food_churn;
+
+----highest churn
+SELECT
+city,
+COUNT(*) AS total_customers,
+SUM(churned) AS churned_customers
+FROM food_churn
+GROUP BY city
+ORDER BY churned_customers DESC;
+
+SELECT
+plan_type,
+COUNT(*) AS total_customers,
+SUM(churned) AS churned_customers,
+ROUND(AVG(churned) * 100, 2) AS churn_percentage
+FROM food_churn
+GROUP BY plan_type
+ORDER BY churn_percentage DESC;
+
+-------rating
+SELECT
+customer_rating,
+COUNT(*) AS total_customers,
+SUM(churned) AS churned_customers,
+ROUND(AVG(churned) * 100, 2) AS churn_percentage
+FROM food_churn
+GROUP BY customer_rating
+ORDER BY churn_percentage DESC;
+
+----join
+SELECT
+f.customer_id,
+f.city,
+f.churned,
+r.return_id,
+r.reason,
+r.refund_amount,
+r.status
+FROM food_churn f
+INNER JOIN returns r
+ON f.customer_id = r.customer_id;
+
+SELECT customer_id
+FROM food_churn
+LIMIT 10;
+describe returns;
+SELECT customer_id
+FROM returns
+LIMIT 10;
+
+SELECT
+f.customer_id,
+r.customer_id
+FROM food_churn f
+INNER JOIN returns r
+ON REPLACE(f.customer_id, 'cust', '') = r.customer_id
+LIMIT 10;
+
+SELECT
+f.customer_id,
+f.city,
+f.churned,
+r.return_id,
+r.reason,
+r.refund_amount,
+r.status
+FROM food_churn f
+LEFT JOIN returns r
+ON REPLACE(f.customer_id, 'cust', '') = r.customer_id;
+
+SELECT
+COUNT(*) AS total_returns,
+COUNT(DISTINCT customer_id) AS total_customers,
+SUM(refund_amount) AS total_refund,
+AVG(refund_amount) AS average_refund
+FROM returns;
+
+-----window function 
+
+SELECT
+customer_id,
+city,
+total_spend_90d_inr,
+ROW_NUMBER() OVER (
+ORDER BY total_spend_90d_inr DESC
+) AS row_num
+FROM food_churn;
+
+---rank
+SELECT
+customer_id,
+total_spend_90d_inr,
+RANK() OVER (
+ORDER BY total_spend_90d_inr DESC
+) AS customer_rank
+FROM food_churn;
+
+----partation 
+SELECT
+customer_id,
+city,
+total_spend_90d_inr,
+RANK() OVER (
+PARTITION BY city
+ORDER BY total_spend_90d_inr DESC
+) AS city_rank
+FROM food_churn;
+
+
