@@ -1,0 +1,152 @@
+use project2;
+select * from ecommerce;
+
+--duplicate cheak
+SELECT COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'project2'
+AND TABLE_NAME = 'ecommerce';
+show columns from ecommerce like'%Social%';
+
+SELECT COUNT(*) AS Duplicate_Count
+FROM ecommerce
+GROUP BY
+Age, Gender, Country, City,
+Membership_Years, Login_Frequency,
+Session_Duration_Avg, Pages_Per_Session,
+Cart_Abandonment_Rate, Wishlist_Items,
+Total_Purchases, Average_Order_Value,
+Days_Since_Last_Purchase, Discount_Usage_Rate,
+Returns_Rate, Email_Open_Rate,
+Customer_Service_Calls, Product_Reviews_Written,
+Social_Media_Engagement_Score, Mobile_App_Usage
+HAVING COUNT(*) > 1;
+----blank value cheak
+SELECT COUNT(*) AS Blank_Gender
+FROM ecommerce
+WHERE Gender IS NULL
+OR TRIM(Gender) = '';
+
+SELECT
+SUM(TRIM(Country) = '') AS Blank_Country,
+SUM(TRIM(City) = '') AS Blank_City,
+SUM(TRIM(Pages_Per_Session) = '') AS Blank_Pages,
+SUM(TRIM(Social_Media_Engagement_Score) = '') AS Blank_Social_Media
+FROM ecommerce;
+
+----blank record see
+SELECT *
+FROM ecommerce
+WHERE TRIM(Pages_Per_Session) = ''
+LIMIT 10;
+
+SELECT *
+FROM ecommerce
+WHERE TRIM(Social_Media_Engagement_Score) = ''
+LIMIT 10;
+
+---average value
+ SELECT AVG(Pages_Per_Session)
+FROM ecommerce
+WHERE Pages_Per_Session IS NOT NULL;
+
+SELECT AVG(Social_Media_Engagement_Score)
+FROM ecommerce
+WHERE Social_Media_Engagement_Score IS NOT NULL;
+----min max value find
+
+SELECT
+MIN(Age) AS Minimum_Age,
+MAX(Age) AS Maximum_Age,
+MIN(Total_Purchases) AS Minimum_Purchases,
+MAX(Total_Purchases) AS Maximum_Purchases,
+MIN(Average_Order_Value) AS Minimum_Order,
+MAX(Average_Order_Value) AS Maximum_Order
+FROM ecommerce;
+---country wise custmer
+SELECT
+Country,
+COUNT(*) AS Total_Customers
+FROM ecommerce
+GROUP BY Country
+ORDER BY Total_Customers DESC;
+---gender/country wise
+
+SELECT
+Country,
+Gender,
+COUNT(*) AS Total_Customers
+FROM ecommerce
+GROUP BY Country, Gender
+ORDER BY Total_Customers DESC;
+
+---total purchases
+SELECT
+SUM(Total_Purchases) AS Total_Purchases,
+AVG(Total_Purchases) AS Average_Purchases,
+MAX(Total_Purchases) AS Highest_Purchases,
+MIN(Total_Purchases) AS Lowest_Purchases
+FROM ecommerce;
+
+---country wise sales
+SELECT
+Country,
+SUM(Total_Purchases * Average_Order_Value) AS Total_Sales
+FROM ecommerce
+GROUP BY Country
+ORDER BY Total_Sales DESC;
+
+-----top 10 customer
+SELECT
+Age,
+Gender,
+Country,
+City,
+Total_Purchases,
+Average_Order_Value
+FROM ecommerce
+ORDER BY Total_Purchases DESC
+LIMIT 10;
+---customer filter
+SELECT *
+FROM ecommerce
+WHERE Age > 30;
+-----having
+SELECT
+Country,
+SUM(Total_Purchases * Average_Order_Value) AS Total_Sales
+FROM ecommerce
+GROUP BY Country
+HAVING Total_Sales > 100000
+ORDER BY Total_Sales DESC;
+----aggregate function
+SELECT
+COUNT(*) AS Total_Customers,
+SUM(Total_Purchases) AS Total_Purchases,
+AVG(Average_Order_Value) AS Avg_Order_Value,
+MAX(Average_Order_Value) AS Highest_Order,
+MIN(Average_Order_Value) AS Lowest_Order
+FROM ecommerce;
+-----commit rollback
+UPDATE ecommerce
+SET Age = Age
+WHERE Age = 25;
+rollback;
+----view
+select * from customer_view;
+
+--indexing
+create index idx_country on ecommerce (country(50));
+describe ecommerce;
+---windw function 
+SELECT
+Age,
+Gender,
+Country,
+City,
+Total_Purchases,
+ROW_NUMBER() OVER (
+ORDER BY Total_Purchases DESC
+) AS Row_No
+FROM ecommerce
+LIMIT 20;
