@@ -1,0 +1,328 @@
+create database project4;
+use project4;
+show tables;
+describe electronic_sales;
+select count(*) from electronic_sales;
+----cheak null value
+SELECT
+COUNT(*) AS total_records,
+SUM(CASE WHEN `Customer ID` IS NULL THEN 1 ELSE 0 END) AS null_customer_id,
+SUM(CASE WHEN Age IS NULL THEN 1 ELSE 0 END) AS null_age,
+SUM(CASE WHEN Gender IS NULL THEN 1 ELSE 0 END) AS null_gender,
+SUM(CASE WHEN Rating IS NULL THEN 1 ELSE 0 END) AS null_rating,
+SUM(CASE WHEN `Total Price` IS NULL THEN 1 ELSE 0 END) AS null_total_price
+FROM electronic_sales;
+
+---duplicate row find
+SELECT
+`Customer ID`, Age, Gender, `Loyalty Member`,
+`Product Type`, SKU, Rating, `Order Status`,
+`Payment Method`, `Total Price`, `Unit Price`,
+Quantity, `Purchase Date`, `Shipping Type`,
+`Add-ons Purchased`, `Add-on Total`,
+COUNT(*) AS duplicate_count
+FROM electronic_sales
+GROUP BY
+`Customer ID`, Age, Gender, `Loyalty Member`,
+`Product Type`, SKU, Rating, `Order Status`,
+`Payment Method`, `Total Price`, `Unit Price`,
+Quantity, `Purchase Date`, `Shipping Type`,
+`Add-ons Purchased`, `Add-on Total`
+HAVING COUNT(*) > 1;
+----cheak blan value
+SELECT
+SUM(CASE WHEN TRIM(Gender) = '' THEN 1 ELSE 0 END) AS blank_gender,
+SUM(CASE WHEN TRIM(`Loyalty Member`) = '' THEN 1 ELSE 0 END) AS blank_loyalty,
+SUM(CASE WHEN TRIM(`Product Type`) = '' THEN 1 ELSE 0 END) AS blank_product,
+SUM(CASE WHEN TRIM(SKU) = '' THEN 1 ELSE 0 END) AS blank_sku,
+SUM(CASE WHEN TRIM(`Order Status`) = '' THEN 1 ELSE 0 END) AS blank_order,
+SUM(CASE WHEN TRIM(`Payment Method`) = '' THEN 1 ELSE 0 END) AS blank_payment,
+SUM(CASE WHEN TRIM(`Shipping Type`) = '' THEN 1 ELSE 0 END) AS blank_shipping,
+SUM(CASE WHEN TRIM(`Add-ons Purchased`) = '' THEN 1 ELSE 0 END) AS blank_addons
+FROM electronic_sales;
+
+----rong value find
+select * from electronic_sales where Age <18 or Age >100;
+
+----date or price validation
+SELECT
+    'Invalid Purchase Date' AS check_type,
+    COUNT(*) AS total
+FROM electronic_sales
+WHERE `Purchase Date` IS NULL
+
+UNION ALL
+
+SELECT 'Invalid Total Price', COUNT(*)
+FROM electronic_sales
+WHERE `Total Price` < 0
+
+UNION ALL
+
+SELECT 'Invalid Unit Price', COUNT(*)
+FROM electronic_sales
+WHERE `Unit Price` < 0
+
+UNION ALL
+
+SELECT 'Invalid Quantity', COUNT(*)
+FROM electronic_sales
+WHERE Quantity <= 0
+
+UNION ALL
+
+SELECT 'Invalid Add-on Total', COUNT(*)
+FROM electronic_sales
+WHERE `Add-on Total` < 0
+
+UNION ALL
+
+SELECT 'Shipping Type Missing', COUNT(*)
+FROM electronic_sales
+WHERE `Shipping Type` IS NULL
+   OR TRIM(`Shipping Type`) = '';
+
+----Product wise total sales
+SELECT
+`Product Type`,
+SUM(`Total Price`) AS total_sales
+FROM electronic_sales
+GROUP BY `Product Type`
+ORDER BY total_sales DESC;
+
+---highest sales product
+SELECT
+`Product Type`,
+SUM(Quantity) AS total_quantity
+FROM electronic_sales
+GROUP BY `Product Type`
+ORDER BY total_quantity DESC
+LIMIT 1;
+
+------highest reenue genrate product
+SELECT
+`Product Type`,
+SUM(`Total Price`) AS revenue
+FROM electronic_sales
+GROUP BY `Product Type`
+ORDER BY revenue DESC
+LIMIT 1;
+
+---gender wise total customer
+SELECT
+Gender,
+COUNT(DISTINCT `Customer ID`) AS total_customers
+FROM electronic_sales
+GROUP BY Gender;
+
+-----gender wise total sales
+SELECT
+Gender,
+ROUND(SUM(`Total Price`),2) AS total_sales
+FROM electronic_sales
+GROUP BY Gender
+ORDER BY total_sales DESC;
+
+----top 10 customer
+SELECT
+`Customer ID`,
+COUNT(*) AS total_orders,
+SUM(`Total Price`) AS total_spent
+FROM electronic_sales
+GROUP BY `Customer ID`
+ORDER BY total_spent DESC
+LIMIT 10;
+
+----having
+SELECT
+`Loyalty Member`,
+SUM(`Total Price`) AS total_sales
+FROM electronic_sales
+GROUP BY `Loyalty Member`
+HAVING SUM(`Total Price`) > 100000;
+
+---payment method wise sales
+SELECT
+`Payment Method`,
+ROUND(SUM(`Total Price`),2) AS total_sales
+FROM electronic_sales
+GROUP BY `Payment Method`
+ORDER BY total_sales DESC;
+
+---shipping type wise revenue
+SELECT
+`Shipping Type`,
+ROUND(SUM(`Total Price`),2) AS total_sales
+FROM electronic_sales
+GROUP BY `Shipping Type`
+ORDER BY total_sales DESC;
+
+----having or where combine use
+SELECT
+`Payment Method`,
+COUNT(*) AS total_orders,
+SUM(`Total Price`) AS total_sales
+FROM electronic_sales
+WHERE `Total Price` > 100
+GROUP BY `Payment Method`
+HAVING COUNT(*) > 10
+ORDER BY total_sales DESC;
+
+show tables;
+describe returns;
+describe electronic_sales;
+
+SELECT
+COUNT(*) AS total_records,
+SUM(return_id IS NULL) AS null_returns_id,
+SUM(customer_id IS NULL) AS null_customer_id,
+SUM(reason IS NULL) AS null_reason,
+SUM(refund_amount IS NULL) AS null_refund_amount,
+SUM(requested_at IS NULL) AS null_requested_at,
+SUM(status IS NULL) AS null_status
+FROM returns;
+
+----cheak blank vaule
+SELECT
+SUM(TRIM(reason) = '') AS blank_reason,
+SUM(TRIM(status) = '') AS blank_status
+FROM returns;
+
+----inter join 
+SELECT
+e.`Customer ID`,
+e.Age,
+e.Gender,
+e.`Product Type`,
+e.SKU,
+r.return_id,
+r.reason,
+r.refund_amount,
+r.requested_at,
+r.status
+FROM electronic_sales AS e
+INNER JOIN returns AS r
+ON e.`Customer ID` = r.customer_id;
+
+SELECT * FROM electronic_sales limit 1;
+
+--left join
+SELECT
+e.`Customer ID`,
+r.return_id,
+r.reason,
+r.refund_amount,
+r.status
+FROM electronic_sales AS e
+LEFT JOIN returns AS r
+ON e.`Customer ID` = r.customer_id;
+
+----right join
+SELECT
+e.`Customer ID`,
+r.return_id,
+r.customer_id,
+r.reason,
+r.refund_amount,
+r.requested_at,
+r.status
+FROM electronic_sales AS e
+RIGHT JOIN returns AS r
+ON e.`Customer ID` = r.customer_id;
+
+---outor join
+SELECT
+e.`Customer ID`,
+r.return_id,
+r.customer_id,
+r.reason,
+r.refund_amount,
+r.requested_at,
+r.status
+FROM electronic_sales AS e
+RIGHT JOIN returns AS r
+ON e.`Customer ID` = r.customer_id;
+
+----window function /row number
+SELECT
+customer_id,
+return_id,
+reason,
+refund_amount,
+status,
+ROW_NUMBER() OVER(
+PARTITION BY customer_id
+ORDER BY requested_at
+) AS row_num
+FROM returns;
+
+----rank 
+SELECT
+customer_id,
+return_id,
+refund_amount,
+RANK() OVER(
+ORDER BY refund_amount DESC
+) AS refund_rank
+FROM returns;
+
+---lag
+SELECT
+customer_id,
+return_id,
+refund_amount,
+RANK() OVER(
+ORDER BY refund_amount DESC
+) AS refund_rank
+FROM returns;
+
+----lead
+SELECT
+customer_id,
+return_id,
+refund_amount,
+RANK() OVER(
+ORDER BY refund_amount DESC
+) AS refund_rank
+FROM returns;
+
+---group by
+SELECT
+reason,
+COUNT(*) AS total_returns,
+SUM(refund_amount) AS total_refund,
+AVG(refund_amount) AS average_refund
+FROM returns
+GROUP BY reason
+ORDER BY total_refund DESC;
+
+-- having clause
+ SELECT
+reason,
+COUNT(*) AS total_returns,
+SUM(refund_amount) AS total_refund
+FROM returns
+GROUP BY reason
+HAVING COUNT(*) > 5
+ORDER BY total_refund DESC;
+
+--order by top 5
+SELECT
+reason,
+COUNT(*) AS total_returns,
+SUM(refund_amount) AS total_refund,
+AVG(refund_amount) AS average_refund
+FROM returns
+GROUP BY reason
+ORDER BY total_refund DESC
+LIMIT 5;
+
+commit/rollback
+start transaction;
+UPDATE returns
+SET refund_amount = refund_amount + 100
+WHERE return_id = 1;
+
+SELECT return_id, refund_amount
+FROM returns
+WHERE return_id = 1;
