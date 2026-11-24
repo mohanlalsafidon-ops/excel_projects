@@ -1,0 +1,105 @@
+SELECT * FROM project1.customers;
+select count (*) as total customers
+from customers;
+
+use project1;
+select * from information_schema.tables;
+describe customers;
+select count(*) as total_customers from customers;
+SELECT *
+FROM customers
+WHERE customer_id IS NULL;
+
+SELECT * FROM customers
+WHERE first_name IS NULL;
+
+SELECT * FROM customers
+WHERE last_name IS NULL;
+
+SELECT * FROM customers WHERE email IS NULL;
+SELECT * FROM CUSTOMERS WHERE phone IS NULL;
+SELECT * FROM CUSTOMERS WHERE country IS NULL;
+SELECT * FROM customers WHERE city IS NULL;
+
+---DUPLICATE VALUE FIND
+SELECT customer_id, COUNT(*) AS duplicate_count
+FROM customers
+GROUP BY customer_id
+HAVING COUNT(*) > 1;
+
+SELECT email, COUNT(*) AS duplicate_count
+FROM customers
+GROUP BY email
+HAVING COUNT(*) > 1;
+SELECT * FROM customers WHERE TRIM(first_name) = '';
+SELECT * FROM customers WHERE TRIM(email) = '';
+SELECT * FROM customers WHERE TRIM(last_name) = '';
+SELECT * FROM customers WHERE TRIM(phone) = '';
+SELECT * FROM customers WHERE TRIM(country) = '';
+SELECT * FROM customers WHERE TRIM(city) = '';
+
+UPDATE customers SET first_name = NULL WHERE TRIM(first_name) ='';
+SET SQL_SAFE_UPDATES =0;
+SELECT @@sql_safe_updates;
+UPDATE customers
+SET first_name = TRIM(first_name)
+WHERE first_name IS NOT NULL;
+UPDATE customers
+SET first_name = TRIM(last_name)
+WHERE first_name IS NOT NULL;
+UPDATE customers
+SET email = LOWER(TRIM(email))
+WHERE customer_id > 0; 
+SELECT * FROM customers LIMIT 10;
+
+UPDATE customers
+SET country = TRIM(country)
+WHERE customer_id > 0;
+UPDATE customers
+SET country = TRIM(city)
+WHERE customer_id > 0;
+
+SELECT signup_date FROM customers LIMIT 20;
+ALTER TABLE customers MODIFY COLUMN signup_date DATE;
+SELECT * FROM customers ORDER BY customer_id DESC;
+
+SELECT * FROM customers WHERE COUNTRY ='India';
+SELECT * FROM customers where COUNTRY ='India' and CITY = 'Delhi';
+SELECT country,COUNT(*) AS totl_customers from customers GROUP BY country;
+USE Project1;
+show tables;
+select * from project1.customers limit 5;
+
+select country, COUNT(*) AS total_customers FROM project1.customers group by country ;
+select country, COUNT(*) AS total_customers FROM customers group by country HAVING COUNT(*) >100;
+
+SELECT COUNT(*) AS total_customer from customers;
+select max(customer_id) as maximum_id from customers;
+show tables;
+SELECT city,COUNT(*) AS total_customer FROM customers
+GROUP BY city order by total_customer DESC;
+
+describe customers;
+
+SELECT city, COUNT(*) AS total_customers
+FROM customers
+GROUP BY city
+HAVING COUNT(*) > 50
+ORDER BY total_customers DESC;
+
+start transaction;
+
+UPDATE customers
+SET city = 'Delhi'
+WHERE customer_id = 1;
+
+SELECT * FROM customers WHERE customer_id = 1;
+ROLLBACK;
+
+SELECT customer_id, city
+FROM customers
+WHERE customer_id = 1;
+commit;
+SELECT customer_id, city
+FROM customers
+WHERE customer_id = 1;
